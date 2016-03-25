@@ -1,0 +1,96 @@
+# Execution begins at address 0
+    .pos 0
+init:   irmovl Stack, %esp      # Setup stack pointer
+        irmovl Stack, %ebp      # Set up base pointer
+        call Main               # Execute main program
+        halt                    # Terminate program
+
+# Array of 10 elements
+    .align 10
+array:  .long 0x3
+        .long 0x8
+        .long 0x7
+        .long 0x2
+        .long 0x9
+        .long 0x5
+        .long 0x4
+        .long 0x1
+        .long 0x6
+        .long 0x0
+
+#Main function, calls bubble and passes an array and the number of elements
+Main:   pushl %ebp
+        rrmovl %esp,%ebp
+        irmovl $10, %eax
+        pushl %eax              # Push 10
+        irmovl array,%edx
+        pushl %edx              # Push array
+        call bubble             # bubble(array, 10)
+        rrmovl %ebp,%esp
+        popl %ebp
+        ret
+
+
+
+bubble:	
+    pushl %ebp
+    rrmovl %esp,%ebp
+    pushl %ebx
+    mrmovl 8(%ebp),%ecx     # ecx = array
+    mrmovl 12(%ebp),%edx    # edx = Size(10)
+	andl %edx, %edx         # Set condition codes
+	je End
+	
+
+#Outer Loop
+Loop:
+    mrmovl 8(%ebp),%ecx     # ecx = array
+    mrmovl (%ecx), %esi     # j in the array
+    mrmovl 4(%ecx), %edi    # j + 1 in the array
+    irmovl $-1, %ebx       
+    xorl %eax,%eax          # j = 0
+    addl %ebx,%edx          # edx Size--
+    jne Loopl               # if it does not equal 0 jump to Loopl
+    jmp Loop
+
+
+#Inner Loop
+Loopl:
+    #for loop checks condition
+    irmovl $1,%ebx
+    addl %ebx, %eax         #j++
+
+    
+    #if statement
+    rrmovl %esi, %ebx #temporary
+    subl %edi, %ebx  #subtracts j+1 - j
+    jle Shift #equals less than or equal to 0
+    rrmovl %esi, %ebx #move to temporary
+    rmmovl %edi, (%ecx)
+    rmmovl %ebx, 4(%ecx)
+    jmp Shift
+    
+    
+#Moves ecx so it is not stuck comparing the first two elements
+Shift:
+    #checks if i is equal to 0
+    rrmovl %edx, %ebx
+    subl %eax, %ebx   #i - j
+    je Loop
+    irmovl $4,%ebx
+    addl %ebx,%ecx 
+    mrmovl (%ecx), %esi    #takes care of the swapping
+    mrmovl 4(%ecx), %edi
+    jmp Loopl
+    
+    
+
+End:
+    popl %ebx 
+    rrmovl %ebp,%esp
+    popl %ebp
+    ret
+
+# The stack starts here and grows to lower addresses
+    .pos 0x100
+Stack:
